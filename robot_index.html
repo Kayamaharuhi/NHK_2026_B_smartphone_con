@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>明石布 コントローラー</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            background: #000000;
+            color: #ffffff;
+            padding: 4px;
+            height: 100dvh;
+            max-height: 100dvh;
+            overflow: hidden;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px 6px;
+            background: #000000;
+            border-bottom: 1px solid #222222;
+            min-height: 28px;
+            flex-shrink: 0;
+            gap: 4px;
+        }
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+            flex-shrink: 1;
+        }
+        .title { 
+            font-size: 0.8rem; 
+            font-weight: 900; 
+            letter-spacing: 0.05em; 
+            color: #a0aec0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .badge {
+            font-size: 0.7rem;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 2px;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+        .badge-online       { background: #00441b; color: #00ff66; border: 1px solid #00aa44; }
+        .badge-reconnecting { background: #4a2800; color: #ffaa00; border: 1px solid #cc7700; animation: pulse 1s infinite; }
+        .badge-offline      { background: #4a0000; color: #ff3333; border: 1px solid #aa0000; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .btn-mini {
+            background: #111111;
+            color: #aaaaaa;
+            border: 1px solid #333333;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .btn-mini:hover { background: #222222; color: #ffffff; }
+        .btn-mini.active { background: #003322; color: #00ff88; border-color: #008844; }
+
+        .btn-vibe-mini {
+            font-size: 0.68rem;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            border: 1px solid #f43f5e;
+            background: #4c0519;
+            color: #ffe4e6;
+            box-shadow: 0 0 6px rgba(244, 63, 94, 0.4);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-height: 0;
+            max-width: 920px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .panel {
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .timer-section {
+            background: #050505;
+            border: 1px solid #333333;
+            border-radius: 4px;
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .timer-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .timer-display {
+            font-size: 3.4rem;
+            font-weight: 900;
+            color: #ffcc00;
+            line-height: 1;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 16px rgba(255, 204, 0, 0.45);
+            font-family: monospace;
+        }
+        
+        .timer-btns {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn-start {
+            padding: 12px 24px;
+            font-size: 1.25rem;
+            font-weight: 900;
+            border: 2px solid #00ff66;
+            background: #003815;
+            color: #00ff66;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 120px;
+            text-shadow: 0 0 6px rgba(0, 255, 102, 0.4);
+            font-family: inherit;
+            letter-spacing: 0.05em;
+            transition: all 0.15s ease;
+        }
+        .btn-start:active { transform: scale(0.96); }
+        .btn-start.running {
+            background: #4a0000;
+            border-color: #ff3333;
+            color: #ff4444;
+            text-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+        }
+        .btn-reset {
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            border: 1px solid #444444;
+            background: #181818;
+            color: #aaaaaa;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .btn-reset:hover { background: #282828; color: #ffffff; }
+
+        .event-banner {
+            background: #080808;
+            border-top: 1px solid #222222;
+            padding: 4px 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: #ffffff;
+        }
+        .event-alert { color: #ffbb00; text-shadow: 0 0 8px rgba(255, 187, 0, 0.5); }
+        .event-super { color: #ff2222; font-weight: 900; text-shadow: 0 0 10px rgba(255, 34, 34, 0.6); }
+
+        .match-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            flex: 1;
+            min-height: 0;
+        }
+        @media (max-width: 640px) {
+            .match-split {
+                grid-template-columns: 1fr;
+            }
+            .timer-display {
+                font-size: 2.6rem;
+            }
+        }
+
+        .left-info-zone {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-height: 0;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 6px;
+        }
+        .data-cell {
+            background: #050505;
+            border: 1px solid #222222;
+            border-radius: 4px;
+            padding: 8px 10px;
+        }
+        .data-label {
+            font-size: 0.7rem;
+            color: #888888;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+
+        .yaw-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-right: 4px;
+            margin-top: 4px;
+        }
+        .yaw-val {
+            font-size: clamp(2.8rem, 7vw, 4.2rem);
+            font-weight: 900;
+            color: #00f0ff;
+            line-height: 1;
+            text-shadow: 0 0 14px rgba(0, 240, 255, 0.55);
+            font-family: monospace;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .yaw-val:active {
+            transform: scale(0.95);
+            color: #fbbf24;
+        }
+        .compass-circle {
+            width: 58px;
+            height: 58px;
+            border: 2px solid #00f0ff;
+            border-radius: 50%;
+            position: relative;
+            transition: transform 0.1s ease-out;
+            background: #000000;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
+            cursor: pointer;
+        }
+        .compass-needle {
+            width: 3px;
+            height: 22px;
+            background: #ff2222;
+            border-radius: 1px;
+            position: absolute;
+            top: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .state-tag {
+            font-size: 0.85rem;
+            font-weight: 900;
+            padding: 4px 6px;
+            border-radius: 3px;
+            display: block;
+            text-align: center;
+            margin-top: 4px;
+        }
+        .state-ok  { background: #002b11; color: #00ff66; border: 1px solid #008833; }
+        .state-off { background: #111111; color: #666666; border: 1px solid #333333; }
+        .state-err { background: #330000; color: #ff3333; border: 1px solid #880000; }
+
+   
+        .steer-current-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            margin-top: 6px;
+            background: #000000;
+            padding: 4px;
+            border-radius: 3px;
+            border: 1px solid #1a1a1a;
+        }
+        .steer-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.65rem;
+            font-family: monospace;
+        }
+        .steer-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: #222222;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 2px 0;
+        }
+        .steer-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: #00ff66;
+            transition: width 0.15s ease;
+        }
+
+        /* CANバスモニター */
+        .can-box {
+            background: #050505;
+            border: 1px solid #222222;
+            border-radius: 4px;
+            padding: 8px 10px;
+            flex: 1;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #canList {
+            overflow-y: auto;
+            flex: 1;
+            margin-top: 4px;
+            padding-right: 2px;
+        }
+        .can-empty-notice {
+            color: #444444;
+            font-size: 0.75rem;
+            padding: 16px 0;
+            text-align: center;
+            font-family: monospace;
+        }
+        .can-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #ffffff;
+            border-bottom: 1px dotted #222222;
+            padding: 3px 0;
+        }
+        .can-id { color: #38bdf8; font-family: monospace; }
+        .can-data { color: #a3e635; font-family: monospace; }
+
+        /* 雑巾検知 */
+        .cloth-alert-card {
+            border-radius: 4px;
+            padding: 6px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin-bottom: 2px;
+            transition: all 0.2s ease;
+        }
+        .cloth-alert-hidden {
+            display: none !important;
+        }
+        .cloth-alert-ng {
+            background: #3b0707;
+            border: 2px solid #ef4444;
+            color: #fee2e2;
+            animation: alert-pulse 0.9s infinite alternate;
+        }
+        .cloth-alert-ok {
+            background: #022c22;
+            border: 1px solid #10b981;
+            color: #a7f3d0;
+        }
+        @keyframes alert-pulse {
+            from { box-shadow: 0 0 6px rgba(239, 68, 68, 0.4); }
+            to { box-shadow: 0 0 16px rgba(239, 68, 68, 0.95); }
+        }
+        .cloth-alert-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 900;
+        }
+        .cloth-alert-body {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .cloth-conf-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 2px;
+            background: rgba(0,0,0,0.6);
+            font-family: monospace;
+        }
+        .cloth-metrics {
+            font-size: 0.7rem;
+            color: #cbd5e1;
+            font-family: monospace;
+        }
+
+        .right-action-zone {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            justify-content: space-between;
+            background: #050505;
+            border: 1px solid #222222;
+            border-radius: 4px;
+            padding: 8px 10px;
+        }
+        .action-zone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: 900;
+            color: #fbbf24;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            flex: 1;
+        }
+        button.cmd {
+            padding: 12px 6px;
+            min-height: 72px;
+            font-size: 1rem;
+            font-weight: 900;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.1s ease;
+        }
+        button.cmd:active { transform: scale(0.96); opacity: 0.85; }
+        .cmd-title { font-size: 0.95rem; font-weight: 900; }
+        .cmd-key {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-cmd-reset {
+            background: #002b4d;
+            border: 2px solid #0099ff;
+            color: #38bdf8;
+            box-shadow: 0 0 10px rgba(0, 153, 255, 0.25);
+        }
+        .btn-mode {
+            background: #00331f;
+            border: 2px solid #00cc66;
+            color: #4ade80;
+            box-shadow: 0 0 10px rgba(0, 204, 102, 0.25);
+        }
+        .btn-empty {
+            background: #111111;
+            border: 2px solid #333333;
+            color: #888888;
+        }
+        .btn-stop {
+            background: #440000;
+            border: 2px solid #ff2222;
+            color: #f87171;
+            box-shadow: 0 0 14px rgba(255, 34, 34, 0.4);
+        }
+
+        .tx-status-bar {
+            background: #000000;
+            border: 1px solid #1f1f1f;
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title-group">
+            <span class="title">明石布 コントローラー</span>
+            <span style="font-size: 0.65rem; background: #1e3a5f; color: #38bdf8; border: 1px solid #0284c7; padding: 1px 5px; border-radius: 3px; font-weight: bold;">v2.7</span>
+        </div>
+        <div class="header-controls">
+            <button id="btnVibeToggle" class="btn-vibe-mini" onclick="toggleVibeMode()" title="スマホ振動強度切り替え (タップで今すぐ手元の振動をテスト)">振動: 最大</button>
+            <!-- 歪み検知機能の有効/無効 -->
+            <button id="btnClothToggle" class="btn-mini active" onclick="toggleClothDetection()" title="カメラ雑巾歪み検知のON/OFF">歪み検知: ON</button>
+            <!-- 全画面ボタン -->
+            <button id="btnFullscreen" class="btn-mini" onclick="toggleFullscreen()" title="全画面表示">⛶</button>
+            <span id="statusBadge" class="badge badge-offline">OFFLINE</span>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div class="panel">
+
+            <div class="timer-section">
+                <div class="timer-top-row">
+                    <div class="timer-display" id="timerDisplay">00:00.0</div>
+                    <div class="timer-btns">
+                        <button class="btn-reset" onclick="resetTimer()">RESET</button>
+                        <button class="btn-start" id="btnTimerStart" onclick="toggleTimer()">START</button>
+                    </div>
+                </div>
+                <div class="event-banner" id="eventBanner">
+                    <span id="eventText">READY [00:00]</span>
+                    <span id="eventNext" style="font-size: 0.75rem; color: #00f0ff;">NEXT: 0:30 (+10枚)</span>
+                </div>
+            </div>
+
+            <div id="clothAlertCard" class="cloth-alert-card cloth-alert-hidden">
+                <div class="cloth-alert-header">
+                    <span id="clothAlertTitle">雑巾よれ・歪み検知</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span id="clothAlertConf" class="cloth-conf-badge">CONF: 0%</span>
+                    </div>
+                </div>
+                <div class="cloth-alert-body">
+                    <span id="clothAlertReason" style="font-weight: 900;">判定: なし</span>
+                    <span id="clothAlertMetrics" class="cloth-metrics">Conv: 0.00 / Rect: 0.00</span>
+                </div>
+            </div>
+
+            <div class="match-split">
+
+                <div class="left-info-zone">
+                    <div class="data-grid">
+                        <div class="data-cell">
+                            <div class="data-label" style="display: flex; justify-content: space-between;">
+                                <span>ROBOT POSE / YAW</span>
+                                <span style="font-size: 0.65rem; color: #00f0ff;"></span>
+                            </div>
+                            <div class="yaw-container">
+                                <div class="yaw-val" id="yawVal" onclick="sendChar('R')" title="タップしてYaw角をゼロリセット">0.0°</div>
+                                <div id="compass" class="compass-circle" onclick="sendChar('R')" title="タップしてYaw角をゼロリセット">
+                                    <div class="compass-needle"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="data-cell">
+                            <div class="data-label">SYSTEM</div>
+                            <div style="display: flex; gap: 4px; margin-top: 3px;">
+                                <span id="tagCon" class="state-tag state-off" style="flex: 1; margin-top:0;">CON: OFF</span>
+                                <span id="tagRoller" class="state-tag state-off" style="flex: 1; margin-top:0;">ROLR: OFF</span>
+                            </div>
+                            <div class="steer-current-grid" title="ステアモーター電流負荷 (過負荷・脱調監視)">
+                                <div class="steer-col">
+                                    <span style="color:#888;">FL</span>
+                                    <div class="steer-bar-bg"><div id="barFL" class="steer-bar-fill"></div></div>
+                                    <span id="valFL" style="color:#aaa;">0</span>
+                                </div>
+                                <div class="steer-col">
+                                    <span style="color:#888;">FR</span>
+                                    <div class="steer-bar-bg"><div id="barFR" class="steer-bar-fill"></div></div>
+                                    <span id="valFR" style="color:#aaa;">0</span>
+                                </div>
+                                <div class="steer-col">
+                                    <span style="color:#888;">RL</span>
+                                    <div class="steer-bar-bg"><div id="barRL" class="steer-bar-fill"></div></div>
+                                    <span id="valRL" style="color:#aaa;">0</span>
+                                </div>
+                                <div class="steer-col">
+                                    <span style="color:#888;">RR</span>
+                                    <div class="steer-bar-bg"><div id="barRR" class="steer-bar-fill"></div></div>
+                                    <span id="valRR" style="color:#aaa;">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="can-box">
+                        <div class="data-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <span style="color: #38bdf8; font-weight: 900;">CAN BUS MONITOR </span>
+                            <span style="font-size: 0.65rem; color: #666; font-family: monospace;">差分キャッシュ</span>
+                        </div>
+                        <div id="canList">
+                            <div id="canEmptyNotice" class="can-empty-notice">WAITING FOR CAN PACKETS...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-action-zone">
+                    <div class="action-zone-header">
+                        <span> ACTION PAD </span>
+                        <span style="font-family: monospace; color: #888;"></span>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="cmd btn-cmd-reset" onclick="sendChar('R')" title="Reset Yaw (R)">
+                            <div class="cmd-title">RESET YAW</div>
+                            <div class="cmd-key">[ R ]</div>
+                        </button>
+                        <button class="cmd btn-mode" onclick="sendChar('T')" title="Roller Mode (T)">
+                            <div class="cmd-title">ROLLER</div>
+                            <div class="cmd-key">[ T ]</div>
+                        </button>
+                        <button class="cmd btn-empty" onclick="sendChar('E')" title="User Slot (E)">
+                            <div class="cmd-title">USER SLOT</div>
+                            <div class="cmd-key">[ E ]</div>
+                        </button>
+                        <button class="cmd btn-stop" onclick="sendChar('S')" title="Emergency Stop (S)">
+                            <div class="cmd-title">EMERGENCY STOP</div>
+                            <div class="cmd-key">[ S ] 非常停止</div>
+                        </button>
+                    </div>
+
+                    <div class="tx-status-bar">
+                        <span style="color: #666;">直近送信コマンド:</span>
+                        <span id="lastTxBadge" style="color: #fbbf24; font-weight: bold; font-family: monospace;">待機中</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let soundEnabled = true;
+        let isAudioUnlocked = false;
+
+        let clothDetectionEnabled = true;
+        let clothSnoozeUntil = 0;
+
+        let vibeMode = 'ULTRA'; 
+        let clothVibeInterval = null;
+
+        const REASON_JA_MAP = {
+            'Folded(Dent)': '折れ・凹み',
+            'NotRectangular': '長方形の崩れ',
+            'CornerFolded': '角のめくれ',
+            'BadAspect(Ratio)': '縦横比の歪み',
+            'TooSmallContour': '布が小さすぎ',
+            'NoContour': '輪郭なし',
+            'OK (Straight)': 'OK (正常)'
+        };
+
+        function translateReason(r) {
+            return REASON_JA_MAP[r] || r;
+        }
+
+        function toggleClothDetection() {
+            clothDetectionEnabled = !clothDetectionEnabled;
+            const btn = document.getElementById("btnClothToggle");
+            if (clothDetectionEnabled) {
+                btn.textContent = "歪み検知: ON";
+                btn.classList.add("active");
+            } else {
+                btn.textContent = "歪み検知: OFF";
+                btn.classList.remove("active");
+                document.getElementById("clothAlertCard").classList.add("cloth-alert-hidden");
+                stopClothVibrationLoop();
+            }
+        }
+
+        function snoozeClothAlert(seconds) {
+            clothSnoozeUntil = Date.now() + (seconds * 1000);
+            stopClothVibrationLoop();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => {});
+            }
+        }
+
+        function unlockAudio() {
+            initAudio();
+            if (audioCtx && !isAudioUnlocked) {
+                try {
+                    const buffer = audioCtx.createBuffer(1, 1, 22050);
+                    const source = audioCtx.createBufferSource();
+                    source.buffer = buffer;
+                    source.connect(audioCtx.destination);
+                    source.start(0);
+                    isAudioUnlocked = true;
+                } catch (e) {}
+            }
+        }
+
+        window.addEventListener('pointerdown', unlockAudio, { passive: true });
+        window.addEventListener('keydown', unlockAudio, { passive: true });
+
+        function playSubBassHaptic(duration = 0.5) {
+            try {
+                unlockAudio();
+                if (!audioCtx) return;
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc1.type = "sawtooth";
+                osc1.frequency.setValueAtTime(46, audioCtx.currentTime);
+
+                osc2.type = "square";
+                osc2.frequency.setValueAtTime(56, audioCtx.currentTime);
+
+                gain.gain.setValueAtTime(0.95, audioCtx.currentTime);
+                gain.gain.setTargetAtTime(0.0001, audioCtx.currentTime + duration * 0.6, duration * 0.25);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc1.start();
+                osc2.start();
+                osc1.stop(audioCtx.currentTime + duration);
+                osc2.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function triggerVibration(pattern = 'CLOTH') {
+            let actualPattern = [600, 80, 600];
+
+            if (pattern === 'CLOTH') {
+                if (vibeMode === 'ULTRA') {
+                    actualPattern = [1400, 45, 1400, 45, 1600, 45, 1800];
+                    playSubBassHaptic(0.75);
+                } else if (vibeMode === 'STRONG') {
+                    actualPattern = [800, 70, 800, 70, 1000];
+                    playSubBassHaptic(0.5);
+                } else {
+                    actualPattern = [350, 100, 350, 100, 450];
+                }
+            } else if (pattern === 'STOP') {
+                if (vibeMode === 'ULTRA') {
+                    actualPattern = [2000, 40, 2000, 40, 2500];
+                    playSubBassHaptic(0.9);
+                } else if (vibeMode === 'STRONG') {
+                    actualPattern = [1200, 70, 1200, 70, 1500];
+                    playSubBassHaptic(0.6);
+                } else {
+                    actualPattern = [800, 100, 800];
+                }
+            } else if (pattern === 'TAP') {
+                if (vibeMode === 'ULTRA') {
+                    actualPattern = [180, 40, 160];
+                } else if (vibeMode === 'STRONG') {
+                    actualPattern = [120];
+                } else {
+                    actualPattern = [60];
+                }
+            } else if (pattern === 'SUPER') {
+                if (vibeMode === 'ULTRA') {
+                    actualPattern = [1000, 50, 1000, 50, 1400];
+                    playSubBassHaptic(0.7);
+                } else if (vibeMode === 'STRONG') {
+                    actualPattern = [600, 80, 600, 80, 800];
+                    playSubBassHaptic(0.45);
+                } else {
+                    actualPattern = [400, 100, 400];
+                }
+            } else if (Array.isArray(pattern)) {
+                if (vibeMode === 'ULTRA') {
+                    actualPattern = pattern.map((v, i) => (i % 2 === 0 ? Math.round(v * 2.5) : Math.max(35, Math.round(v * 0.5))));
+                } else if (vibeMode === 'STRONG') {
+                    actualPattern = pattern.map((v, i) => (i % 2 === 0 ? Math.round(v * 1.6) : v));
+                } else {
+                    actualPattern = pattern;
+                }
+            } else if (typeof pattern === 'number') {
+                if (vibeMode === 'ULTRA') {
+                    actualPattern = [Math.round(pattern * 2.5)];
+                } else if (vibeMode === 'STRONG') {
+                    actualPattern = [Math.round(pattern * 1.5)];
+                } else {
+                    actualPattern = [pattern];
+                }
+            }
+
+            if (window.navigator && window.navigator.vibrate) {
+                try {
+                    window.navigator.vibrate(actualPattern);
+                } catch (e) {}
+            }
+        }
+
+        function toggleVibeMode() {
+            unlockAudio();
+            if (vibeMode === 'ULTRA') {
+                vibeMode = 'STRONG';
+            } else if (vibeMode === 'STRONG') {
+                vibeMode = 'NORMAL';
+            } else {
+                vibeMode = 'ULTRA';
+            }
+
+            const btn = document.getElementById('btnVibeToggle');
+            if (btn) {
+                if (vibeMode === 'ULTRA') {
+                    btn.textContent = "振動: 最大";
+                    btn.style.background = "#4c0519";
+                    btn.style.borderColor = "#f43f5e";
+                    btn.style.color = "#ffe4e6";
+                } else if (vibeMode === 'STRONG') {
+                    btn.textContent = "振動: 標準";
+                    btn.style.background = "#7c2d12";
+                    btn.style.borderColor = "#f97316";
+                    btn.style.color = "#ffedd5";
+                } else {
+                    btn.textContent = "振動: 小";
+                    btn.style.background = "#111111";
+                    btn.style.borderColor = "#333333";
+                    btn.style.color = "#aaaaaa";
+                }
+            }
+            triggerVibration('CLOTH');
+        }
+
+        function startClothVibrationLoop() {
+            triggerVibration('CLOTH');
+            if (clothVibeInterval) clearInterval(clothVibeInterval);
+            clothVibeInterval = setInterval(() => {
+                const isSnoozed = Date.now() < clothSnoozeUntil;
+                if (window._lastClothWasNg && clothDetectionEnabled && !isSnoozed) {
+                    triggerVibration('CLOTH');
+                } else {
+                    stopClothVibrationLoop();
+                }
+            }, 1300);
+        }
+
+        function stopClothVibrationLoop() {
+            if (clothVibeInterval) {
+                clearInterval(clothVibeInterval);
+                clothVibeInterval = null;
+            }
+        }
+
+        function playClothWarningBeep() {
+            if (!soundEnabled || !clothDetectionEnabled) return;
+            if (Date.now() < clothSnoozeUntil) return;
+            unlockAudio();
+            playTone(1320, 0.09, "square");
+            setTimeout(() => {
+                playTone(880, 0.14, "sawtooth");
+            }, 100);
+        }
+
+        function playTone(freq = 880, duration = 0.14, type = "sine") {
+            if (!soundEnabled) return;
+            try {
+                unlockAudio();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                gain.gain.setValueAtTime(0.45, audioCtx.currentTime);
+                gain.gain.setTargetAtTime(0.0001, audioCtx.currentTime + 0.02, duration * 0.4);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration + 0.05);
+            } catch (e) {}
+        }
+
+        function playEventChime(isSuper = false) {
+            if (!soundEnabled) return;
+            try {
+                unlockAudio();
+                if (!audioCtx) return;
+
+                const notes = isSuper 
+                    ? [523.25, 659.25, 783.99, 1046.50]
+                    : [659.25, 880.00, 1046.50];
+                
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const startTime = audioCtx.currentTime + (idx * 0.09);
+                    const duration = 0.28;
+
+                    osc.type = "triangle";
+                    osc.frequency.setValueAtTime(freq, startTime);
+
+                    gain.gain.setValueAtTime(0.4, startTime);
+                    gain.gain.setTargetAtTime(0.0001, startTime + 0.05, duration * 0.35);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(startTime);
+                    osc.stop(startTime + duration + 0.05);
+                });
+            } catch (e) {}
+        }
+
+        // --- WebSocket 通信 ---
+        let ws = null;
+        let reconnectTimer = null;
+        const statusBadge = document.getElementById('statusBadge');
+        const yawVal = document.getElementById('yawVal');
+        const compass = document.getElementById('compass');
+        const tagCon = document.getElementById('tagCon');
+        const tagRoller = document.getElementById('tagRoller');
+
+        let continuousYaw = 0;
+        let prevRawDeg = 0;
+        let isFirstYaw = true;
+
+        function connectWebSocket() {
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
+            }
+
+            const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${location.host}/ws`;
+
+            try {
+                ws = new WebSocket(wsUrl);
+            } catch (e) {
+                scheduleReconnect();
+                return;
+            }
+
+            ws.onopen = () => {
+                statusBadge.textContent = "ONLINE";
+                statusBadge.className = "badge badge-online";
+                if (reconnectTimer) {
+                    clearTimeout(reconnectTimer);
+                    reconnectTimer = null;
+                }
+            };
+
+            ws.onclose = () => {
+                statusBadge.textContent = "RECONNECTING";
+                statusBadge.className = "badge badge-reconnecting";
+                scheduleReconnect();
+            };
+
+            ws.onerror = () => {
+                ws.close();
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    const rawDeg = (data.yaw * 180 / Math.PI);
+                    yawVal.textContent = `${rawDeg.toFixed(1)}°`;
+
+                    if (isFirstYaw) {
+                        continuousYaw = rawDeg;
+                        prevRawDeg = rawDeg;
+                        isFirstYaw = false;
+                    } else {
+                        let diff = rawDeg - prevRawDeg;
+                        while (diff > 180) diff -= 360;
+                        while (diff < -180) diff += 360;
+                        continuousYaw += diff;
+                        prevRawDeg = rawDeg;
+                    }
+
+                    compass.style.transform = `rotate(${continuousYaw}deg)`;
+
+                    if (data.con_alive) {
+                        tagCon.className = "state-tag state-ok";
+                        tagCon.textContent = "CON: OK";
+                    } else {
+                        tagCon.className = "state-tag state-err";
+                        tagCon.textContent = "CON: LOST";
+                    }
+
+                    if (data.roller_mode) {
+                        tagRoller.className = "state-tag state-ok";
+                        tagRoller.textContent = "ROLR: ON";
+                    } else {
+                        tagRoller.className = "state-tag state-off";
+                        tagRoller.textContent = "ROLR: OFF";
+                    }
+
+                    if (data.steer_currents && data.steer_currents.length >= 4) {
+                        const ids = ['FL', 'FR', 'RL', 'RR'];
+                        for (let i = 0; i < 4; i++) {
+                            const cur = data.steer_currents[i];
+                            const pct = Math.min(100, Math.round((Math.abs(cur) / 2500) * 100));
+                            const bar = document.getElementById(`bar${ids[i]}`);
+                            const val = document.getElementById(`val${ids[i]}`);
+                            if (bar) {
+                                bar.style.width = `${pct}%`;
+                                bar.style.background = pct > 75 ? '#ff3333' : pct > 45 ? '#ffaa00' : '#00ff66';
+                            }
+                            if (val) val.textContent = cur;
+                        }
+                    }
+
+                    updateCanDevices(data.can_devices || {});
+
+                    const clothCard = document.getElementById("clothAlertCard");
+                    const clothTitle = document.getElementById("clothAlertTitle");
+                    const clothConf = document.getElementById("clothAlertConf");
+                    const clothReason = document.getElementById("clothAlertReason");
+                    const clothMetrics = document.getElementById("clothAlertMetrics");
+
+                    if (clothDetectionEnabled && data.cloth && data.cloth.detected) {
+                        clothCard.classList.remove("cloth-alert-hidden");
+                        const isNg = data.cloth.is_ng;
+                        clothConf.textContent = `信頼度: ${Math.round((data.cloth.conf || 0) * 100)}%`;
+
+                        if (isNg) {
+                            clothCard.className = "cloth-alert-card cloth-alert-ng";
+                            clothTitle.textContent = "雑巾よれ・歪み検知";
+                            const reasons = data.cloth.reasons && data.cloth.reasons.length > 0 
+                                ? data.cloth.reasons.map(translateReason).join(" / ")
+                                : translateReason(data.cloth.status);
+                            clothReason.textContent = `判定: 【${reasons}】`;
+                            clothMetrics.textContent = `凸性:${data.cloth.convexity || 0} 矩形度:${data.cloth.rectangularity || 0} 座標:(${data.cloth.cx},${data.cloth.cy})`;
+
+                            if (!window._lastClothWasNg) {
+                                playClothWarningBeep();
+                                startClothVibrationLoop();
+                                window._lastClothWasNg = true;
+                            }
+                        } else {
+                            clothCard.className = "cloth-alert-card cloth-alert-ok";
+                            clothTitle.textContent = " 正常 ";
+                            clothMetrics.textContent = `凸性:${data.cloth.convexity || 0} 矩形度:${data.cloth.rectangularity || 0} 座標:(${data.cloth.cx},${data.cloth.cy})`;
+                            window._lastClothWasNg = false;
+                            stopClothVibrationLoop();
+                        }
+                    } else {
+                        clothCard.classList.add("cloth-alert-hidden");
+                        window._lastClothWasNg = false;
+                        stopClothVibrationLoop();
+                    }
+                } catch (err) {
+                    console.error("Data parse error:", err);
+                }
+            };
+        }
+
+        function scheduleReconnect() {
+            if (!reconnectTimer) {
+                reconnectTimer = setTimeout(() => {
+                    reconnectTimer = null;
+                    connectWebSocket();
+                }, 1000);
+            }
+        }
+
+        connectWebSocket();
+
+        function sendChar(char) {
+            unlockAudio();
+            if (char === 'S') {
+                triggerVibration('STOP');
+            } else {
+                triggerVibration('TAP');
+            }
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(char);
+            }
+            const lastTx = document.getElementById("lastTxBadge");
+            if (lastTx) {
+                const now = new Date();
+                const timeStr = `${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(Math.floor(now.getMilliseconds() / 100))}`;
+                const labelMap = { 'R': 'RESET YAW [R]', 'T': 'ROLLER TOGGLE [T]', 'E': 'USER SLOT [E]', 'S': 'EMERGENCY STOP [S]' };
+                lastTx.textContent = `${labelMap[char] || char} (${timeStr})`;
+            }
+        }
+
+        const canList = document.getElementById('canList');
+        const canEmptyNotice = document.getElementById('canEmptyNotice');
+        const canElementMap = new Map();
+
+        function updateCanDevices(devices) {
+            const keys = Object.keys(devices);
+            if (keys.length === 0) return;
+
+            if (canEmptyNotice && canEmptyNotice.parentNode) {
+                canEmptyNotice.remove();
+            }
+
+            for (const id of keys) {
+                const dataString = `[${devices[id].join(' ')}]`;
+                if (canElementMap.has(id)) {
+                    const { dataElem } = canElementMap.get(id);
+                    if (dataElem.textContent !== dataString) {
+                        dataElem.textContent = dataString;
+                    }
+                } else {
+                    const row = document.createElement('div');
+                    row.className = 'can-row';
+
+                    const idElem = document.createElement('span');
+                    idElem.className = 'can-id';
+                    idElem.textContent = id;
+
+                    const dataElem = document.createElement('span');
+                    dataElem.className = 'can-data';
+                    dataElem.textContent = dataString;
+
+                    row.appendChild(idElem);
+                    row.appendChild(dataElem);
+                    canList.appendChild(row);
+
+                    canElementMap.set(id, { row, dataElem });
+                }
+            }
+        }
+
+        // --- 試合タイマー ---
+        let timerRunning = false;
+        let timerStartTime = 0;
+        let timerElapsedBeforePause = 0;
+        let timerInterval = null;
+        let lastEventIndexTriggered = -1;
+
+        const MATCH_EVENTS = [
+            { time: 0,   text: "READY [00:00]", next: "0:30(+10) ", type: "normal" },
+            { time: 30,  text: "ノーマル+10枚", next: "1:00(+10) ", type: "normal" },
+            { time: 60,  text: "ノーマル+10枚", next: "1:30(+2) ", type: "normal" },
+            { time: 120, text: "スーパー+2", next: "2:30(バケツ解禁) ", type: "alert" },
+            { time: 150, text: "バケツ回収解禁", next: "3:00(試合終了) ", type: "super" },
+            { time: 180, text: "試合終了", next: "FINISH", type: "super" }
+        ];
+
+        function formatTimerDisplay(ms) {
+            const totalSec = Math.floor(ms / 1000);
+            const m = Math.floor(totalSec / 60);
+            const s = totalSec % 60;
+            const tenths = Math.floor((ms % 1000) / 100);
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${tenths}`;
+        }
+
+        function updateTimerUI() {
+            const now = Date.now();
+            const elapsed = timerRunning ? (now - timerStartTime) : timerElapsedBeforePause;
+            const timerDisplay = document.getElementById("timerDisplay");
+            if (timerDisplay) {
+                timerDisplay.textContent = formatTimerDisplay(elapsed);
+            }
+
+            const elapsedSec = Math.floor(elapsed / 1000);
+            for (let i = MATCH_EVENTS.length - 1; i >= 0; i--) {
+                if (elapsedSec >= MATCH_EVENTS[i].time) {
+                    if (lastEventIndexTriggered !== i) {
+                        lastEventIndexTriggered = i;
+                        const eventObj = MATCH_EVENTS[i];
+                        const bannerText = document.getElementById("eventText");
+                        const bannerNext = document.getElementById("eventNext");
+                        if (bannerText) bannerText.textContent = eventObj.text;
+                        if (bannerNext) bannerNext.textContent = `NEXT: ${eventObj.next}`;
+                        if (timerRunning && i > 0) {
+                            playEventChime(eventObj.type === 'super');
+                            triggerVibration(eventObj.type === 'super' ? 'SUPER' : 'TAP');
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        function toggleTimer() {
+            unlockAudio();
+            triggerVibration('TAP');
+            const btn = document.getElementById("btnTimerStart");
+            if (!timerRunning) {
+                timerRunning = true;
+                timerStartTime = Date.now() - timerElapsedBeforePause;
+                timerInterval = setInterval(updateTimerUI, 50);
+                if (btn) {
+                    btn.textContent = "STOP";
+                    btn.classList.add("running");
+                }
+            } else {
+                timerRunning = false;
+                timerElapsedBeforePause = Date.now() - timerStartTime;
+                clearInterval(timerInterval);
+                if (btn) {
+                    btn.textContent = "START";
+                    btn.classList.remove("running");
+                }
+            }
+        }
+
+        function resetTimer() {
+            unlockAudio();
+            triggerVibration('TAP');
+            timerRunning = false;
+            clearInterval(timerInterval);
+            timerElapsedBeforePause = 0;
+            lastEventIndexTriggered = -1;
+            const btn = document.getElementById("btnTimerStart");
+            if (btn) {
+                btn.textContent = "START";
+                btn.classList.remove("running");
+            }
+            updateTimerUI();
+            const bannerText = document.getElementById("eventText");
+            const bannerNext = document.getElementById("eventNext");
+            if (bannerText) bannerText.textContent = "READY [00:00]";
+            if (bannerNext) bannerNext.textContent = "NEXT: 0:30 (+10枚)";
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+            const key = e.key.toUpperCase();
+            if (['R', 'T', 'E', 'S'].includes(key)) {
+                sendChar(key);
+            } else if (e.code === 'Space') {
+                e.preventDefault();
+                toggleTimer();
+            }
+        });
+    </script>
+</body>
+</html>
