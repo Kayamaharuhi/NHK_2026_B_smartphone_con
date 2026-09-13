@@ -18,6 +18,7 @@
 ```
 
 ### 各ファイルの役割
+---
 
 | :--- | :--- | :--- |
 | **`server.py`** | Python 3 (FastAPI, uvicorn, pyserial) | マイコン（シリアル通信）と Web 画面（WebSocket）の双方向通信。 10Hz 定期配信、雑巾アラート受信・ブロードキャスト。 |
