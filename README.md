@@ -18,8 +18,8 @@
 ```
 
 ### 各ファイルの役割
----
 
+| ファイル | 言語 / 技術 | 主な役割 |
 | :--- | :--- | :--- |
 | **`server.py`** | Python 3 (FastAPI, uvicorn, pyserial) | マイコン（シリアル通信）と Web 画面（WebSocket）の双方向通信。 10Hz 定期配信、雑巾アラート受信・ブロードキャスト。 |
 | **`cloth_detector.py`** | Python 3 (OpenCV, NumPy, ultralytics) | USB カメラ（720x480）から雑巾を検知し、凸性・矩形度・コーナー数・縦横比から「よれ・折れ・歪み」を瞬時に判定してサーバーへ POST。 |
