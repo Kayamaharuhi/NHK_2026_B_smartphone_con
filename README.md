@@ -10,7 +10,7 @@
 
 ```
 .
-├── server.py              # FastAPI + WebSocket 通信サーバー (ポート: 8000)
+├── robot_server.py              # FastAPI + WebSocket 通信サーバー (ポート: 8000)
 ├── cloth_detector.py      # OpenCV / YOLO-World 雑巾よれ・歪み検知スクリプト
 ├── robot_index.html       # ブラウザ用 UI 
 ├── README.md              # 本ドキュメント
@@ -21,7 +21,7 @@
 
 | ファイル | 言語 / 技術 | 主な役割 |
 | :--- | :--- | :--- |
-| **`server.py`** | Python 3 (FastAPI, uvicorn, pyserial) | マイコン（シリアル通信）と Web 画面（WebSocket）の双方向通信。 10Hz 定期配信、雑巾アラート受信・ブロードキャスト。 |
+| **`robot_server.py`** | Python 3 (FastAPI, uvicorn, pyserial) | マイコン（シリアル通信）と Web 画面（WebSocket）の双方向通信。 10Hz 定期配信、雑巾アラート受信・ブロードキャスト。 |
 | **`cloth_detector.py`** | Python 3 (OpenCV, NumPy, ultralytics) | USB カメラ（720x480）から雑巾を検知し、凸性・矩形度・コーナー数・縦横比から「よれ・折れ・歪み」を瞬時に判定してサーバーへ POST。 |
 | **`robot_index.html`** | HTML| スマートフォン・タブレット・PC の全画面に対応した高レスポンス Web コントローラー。Yaw 角表示、モーター電流バー、CAN モニター、バイブレーションループ、試合タイマーを搭載。 |
 
@@ -36,7 +36,7 @@
     [ USB シリアル (115200 bps) ]
           ▼
    ┌─────────────────────────────────────────────────────────┐
-   │ server.py (FastAPI / WebSocket サーバー)                 │
+   │ robot_server.py (FastAPI / WebSocket サーバー)           │
    │  - シリアル送受信スレッド (serial_lock最小化)               │
    │  - 10Hz 一括ブロードキャスト (JSON 1回シリアライズ)          │
    │  - /api/cloth_alert エンドポイント                        │
