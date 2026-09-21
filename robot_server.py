@@ -14,15 +14,16 @@ app = FastAPI(title="明石布 ロボットコントローラー API")
 SERIAL_PORT = os.environ.get("SERIAL_PORT", "/dev/ttyACM0")
 BAUD_RATE = int(os.environ.get("BAUD_RATE", 115200))
 
+MAX_GCS_HEIGHT = 20.0
+
 serial_lock = threading.Lock()
 ser_conn = None
 
 telemetry_data = {
     "yaw": 0.0,
+    "gcs_height": 0.0,  
     "con_alive": False,
-    "roller_mode": False,
     "steer_currents": [0, 0, 0, 0],
-    "can_devices": {},
     "timestamp": 0.0,
     "serial_connected": False,
     "cloth": None,  
@@ -31,7 +32,9 @@ telemetry_data = {
 connected_clients = set()
 clients_lock = threading.Lock()
 
+
 def safe_send_serial(char_to_send: str) -> bool:
+    """[改善③] スレッド安全なシリアル書き込み"""
     global ser_conn
     with serial_lock:
         if ser_conn is not None and getattr(ser_conn, "is_open", False):
@@ -47,7 +50,9 @@ def safe_send_serial(char_to_send: str) -> bool:
             print(f"[Serial TX Warn] Cannot send '{char_to_send}': Serial connection is not open")
             return False
 
+
 def serial_reader_thread():
+    """[改善①] 個別パース例外処理によるスレッド切断防止"""
     global telemetry_data, ser_conn
 
     while True:
@@ -73,17 +78,33 @@ def serial_reader_thread():
                         header = parts[0].strip()
 
                         if header == "DATA" and len(parts) >= 8:
+      
                             telemetry_data["yaw"] = float(parts[1]) / 1000.0
+                      
                             telemetry_data["con_alive"] = (parts[2].strip() == "1")
-                            telemetry_data["roller_mode"] = (parts[3].strip() == "1")
+                            
+                            raw_gcs_str = parts[8] if len(parts) >= 9 else parts[3]
+                            try:
+                                raw_gcs = float(raw_gcs_str)
+                                gcs_cm = raw_gcs / 10.0
+                                telemetry_data["gcs_height"] = max(0.0, min(MAX_GCS_HEIGHT, gcs_cm))
+                            except ValueError:
+                                pass
+
                             telemetry_data["steer_currents"] = [
                                 int(parts[4]), int(parts[5]), int(parts[6]), int(parts[7])
                             ]
                             telemetry_data["timestamp"] = time.time()
-                        elif header == "CAN" and len(parts) >= 3:
-                            can_id = parts[1].strip()
-                            telemetry_data["can_devices"][f"0x{can_id}"] = [p.strip() for p in parts[2:]]
-                            telemetry_data["timestamp"] = time.time()
+
+                        elif header == "GCS" and len(parts) >= 2:
+                            try:
+                                raw_gcs = float(parts[1])
+                                gcs_cm = raw_gcs / 10.0
+                                telemetry_data["gcs_height"] = max(0.0, min(MAX_GCS_HEIGHT, gcs_cm))
+                                telemetry_data["timestamp"] = time.time()
+                            except ValueError:
+                                pass
+
                     except (ValueError, IndexError):
                         continue
 
@@ -93,6 +114,7 @@ def serial_reader_thread():
                 ser_conn = None
             telemetry_data["serial_connected"] = False
             time.sleep(1)
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -127,6 +149,11 @@ async def websocket_endpoint(websocket: WebSocket):
                         telemetry_data["cloth"] = cloth_data
                         telemetry_data["timestamp"] = time.time()
                         await broadcast_telemetry()
+                    elif msg_type in ("gcs", "gcs_height"):
+                        val = float(payload.get("value", payload.get("gcs_height", 0.0)))
+                        telemetry_data["gcs_height"] = max(0.0, min(MAX_GCS_HEIGHT, val))
+                        telemetry_data["timestamp"] = time.time()
+                        await broadcast_telemetry()
                 except Exception as e:
                     print(f"[WS JSON Parse Error] {e}")
             else:
@@ -143,7 +170,9 @@ async def websocket_endpoint(websocket: WebSocket):
         if send_task:
             send_task.cancel()
 
+
 async def broadcast_telemetry():
+    """接続中の全ブラウザクライアントへテレメトリを即時一斉配信"""
     msg = json.dumps(telemetry_data)
     with clients_lock:
         clients_list = list(connected_clients)
@@ -152,6 +181,7 @@ async def broadcast_telemetry():
             await ws.send_text(msg)
         except Exception:
             pass
+
 
 @app.post("/api/cloth_alert")
 async def post_cloth_alert(request: Request):
@@ -167,6 +197,7 @@ async def post_cloth_alert(request: Request):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+
 @app.get("/")
 async def get_index():
     found_candidates = []
@@ -179,7 +210,6 @@ async def get_index():
             found_candidates.append((mtime, index_path, candidate))
 
     if found_candidates:
-        # 更新日時(mtime)が最も新しいファイルを自動選択
         found_candidates.sort(key=lambda x: x[0], reverse=True)
         newest_mtime, newest_path, newest_name = found_candidates[0]
         mtime_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(newest_mtime))
@@ -195,15 +225,18 @@ async def get_index():
         )
     return Response(content="<h1>robot_index.html or index.html not found</h1>", media_type="text/html")
 
+
 @app.get("/{filename:path}")
 async def get_static_files(filename: str):
     decoded_filename = urllib.parse.unquote(filename)
-    
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
     for name in [decoded_filename, filename]:
-        file_path = os.path.join(os.path.dirname(__file__), name)
+        file_path = os.path.join(base_dir, name)
         if os.path.exists(file_path) and os.path.isfile(file_path):
             return FileResponse(file_path)
-    
+
+    return Response(status_code=404)
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@
 
 ```
 .
-├── robot_server.py              # FastAPI + WebSocket 通信サーバー (ポート: 8000)
+├── robot_server.py        # FastAPI + WebSocket 通信サーバー (ポート: 8000)
 ├── cloth_detector.py      # OpenCV / YOLO-World 雑巾よれ・歪み検知スクリプト
 ├── robot_index.html       # ブラウザ用 UI 
 ├── README.md              # 本ドキュメント
