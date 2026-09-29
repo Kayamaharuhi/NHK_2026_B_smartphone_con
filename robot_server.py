@@ -34,7 +34,6 @@ clients_lock = threading.Lock()
 
 
 def safe_send_serial(char_to_send: str) -> bool:
-    """[改善③] スレッド安全なシリアル書き込み"""
     global ser_conn
     with serial_lock:
         if ser_conn is not None and getattr(ser_conn, "is_open", False):
@@ -52,7 +51,6 @@ def safe_send_serial(char_to_send: str) -> bool:
 
 
 def serial_reader_thread():
-    """[改善①] 個別パース例外処理によるスレッド切断防止"""
     global telemetry_data, ser_conn
 
     while True:
@@ -114,6 +112,7 @@ def serial_reader_thread():
                 ser_conn = None
             telemetry_data["serial_connected"] = False
             time.sleep(1)
+    """[改善①] 個別パース例外処理によるスレッド切断防止"""
 
 
 @app.websocket("/ws")
@@ -172,7 +171,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 async def broadcast_telemetry():
-    """接続中の全ブラウザクライアントへテレメトリを即時一斉配信"""
     msg = json.dumps(telemetry_data)
     with clients_lock:
         clients_list = list(connected_clients)

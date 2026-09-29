@@ -399,7 +399,6 @@
             transition: width 0.15s ease;
         }
 
-        /* 雑巾よれ検知アラートカード */
         .cloth-alert-card {
             border-radius: 4px;
             padding: 6px 12px;
@@ -564,7 +563,7 @@
 
         <div class="panel">
 
-            <!-- 1. 最上部: 試合タイマー -->
+            <!-- 試合タイマー -->
             <div class="timer-section">
                 <div class="timer-top-row">
                     <div class="timer-display" id="timerDisplay">00:00.0</div>
@@ -579,7 +578,7 @@
                 </div>
             </div>
 
-            <!-- 2. カメラ雑巾よれ検知アラート (検知時のみ表示) -->
+            <!-- カメラ雑巾よれ検知 -->
             <div id="clothAlertCard" class="cloth-alert-card cloth-alert-hidden">
                 <div class="cloth-alert-header">
                     <span id="clothAlertTitle">雑巾よれ・歪み検知</span>
@@ -593,7 +592,6 @@
                 </div>
             </div>
 
-            <!-- 3. 試合特化スプリット -->
             <div class="match-split">
 
                 <!-- 左側：計器ゾーン (YAW, GCS昇降, SYSTEM) -->
@@ -632,7 +630,7 @@
                             <div class="data-label">SYSTEM / 4-WHEEL CURRENT</div>
                             <span id="tagCon" class="state-tag-mini state-off">CON: OFF</span>
                         </div>
-                        <div class="steer-current-grid" title="ステアモーター電流負荷 (FL, FR, RL, RR)">
+                        <div class="steer-current-grid" title="足回り電流 (FL, FR, RL, RR)">
                             <div class="steer-col">
                                 <span class="steer-name">FL</span>
                                 <div class="steer-bar-bg"><div id="barFL" class="steer-bar-fill"></div></div>
@@ -657,7 +655,6 @@
                     </div>
                 </div>
 
-                <!-- 右側：右手操作ゾーン -->
                 <div class="right-action-zone">
                     <div class="action-zone-header">
                         <span>ACTION PAD</span>
@@ -667,12 +664,12 @@
                     <div class="btn-group">
                         <!-- 左上: USER SLOT 1 [T] -->
                         <button class="cmd btn-slot-1" onclick="sendChar('T')" title="User Slot 1 (T)">
-                            <div class="cmd-title">USER SLOT 1</div>
+                            <div class="cmd-title">RIGHT_CATAPULT</div>
                             <div class="cmd-key">[ T ]</div>
                         </button>
                         <!-- 右上: USER SLOT [E] -->
                         <button class="cmd btn-slot-2" onclick="sendChar('E')" title="User Slot (E)">
-                            <div class="cmd-title">USER SLOT</div>
+                            <div class="cmd-title">LEFT_CATAPULT</div>
                             <div class="cmd-key">[ E ]</div>
                         </button>
                         <!-- 左下: EMERGENCY STOP [S] -->
@@ -731,10 +728,10 @@
             clothDetectionEnabled = !clothDetectionEnabled;
             const btn = document.getElementById("btnClothToggle");
             if (clothDetectionEnabled) {
-                btn.textContent = "📷 歪み検知: ON";
+                btn.textContent = " 歪み検知: ON";
                 btn.classList.add("active");
             } else {
-                btn.textContent = "🚫 歪み検知: OFF";
+                btn.textContent = " 歪み検知: OFF";
                 btn.classList.remove("active");
                 document.getElementById("clothAlertCard").classList.add("cloth-alert-hidden");
                 stopClothVibrationLoop();
@@ -817,7 +814,6 @@
             let actualPattern = [600, 80, 600];
 
             if (pattern === 'CLOTH') {
-                // 雑巾歪み時は音を出さず純粋な振動のみ
                 if (vibeMode === 'ULTRA') {
                     actualPattern = [1400, 45, 1400, 45, 1600, 45, 1800];
                 } else if (vibeMode === 'STRONG') {
@@ -931,7 +927,6 @@
         }
 
         function playClothWarningBeep() {
-            // 雑巾歪み検知時のビープ音は無効化 (音を出さない)
             return;
         }
 
@@ -1069,7 +1064,7 @@
                         gcsGaugeFill.style.height = `${pct}%`;
                     }
 
-                    // 3. 通信監視
+                    //  通信監視
                     if (data.con_alive) {
                         tagCon.className = "state-tag-mini state-ok";
                         tagCon.textContent = "CON: OK";
@@ -1078,7 +1073,7 @@
                         tagCon.textContent = "CON: LOST";
                     }
 
-                    // 4. ステア電流バーの更新
+                    //足回り電流の更新
                     if (data.steer_currents && data.steer_currents.length >= 4) {
                         const ids = ['FL', 'FR', 'RL', 'RR'];
                         for (let i = 0; i < 4; i++) {
@@ -1094,7 +1089,7 @@
                         }
                     }
 
-                    // 5. カメラ雑巾歪み検知アラートカード
+                    // カメラ雑巾歪み検知
                     const clothCard = document.getElementById("clothAlertCard");
                     const clothTitle = document.getElementById("clothAlertTitle");
                     const clothConf = document.getElementById("clothAlertConf");
