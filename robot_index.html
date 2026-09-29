@@ -1036,7 +1036,7 @@
                 try {
                     const data = JSON.parse(event.data);
 
-                    // 1. Yaw角
+                    // Yaw角
                     const rawDeg = (data.yaw * 180 / Math.PI);
                     yawVal.textContent = `${rawDeg.toFixed(1)}°`;
 
@@ -1054,7 +1054,7 @@
 
                     compass.style.transform = `rotate(${continuousYaw}deg)`;
 
-                    // 2. GCS昇降 
+                    // GCS昇降 
                     const gcsHeight = typeof data.gcs_height === 'number' ? data.gcs_height : 0.0;
                     if (gcsVal) {
                         gcsVal.innerHTML = `${gcsHeight.toFixed(1)}<span class="gcs-unit">cm</span>`;
@@ -1073,7 +1073,7 @@
                         tagCon.textContent = "CON: LOST";
                     }
 
-                    //足回り電流の更新
+                    //足回り電流
                     if (data.steer_currents && data.steer_currents.length >= 4) {
                         const ids = ['FL', 'FR', 'RL', 'RR'];
                         for (let i = 0; i < 4; i++) {
@@ -1164,7 +1164,7 @@
             }
         }
 
-        // --- 試合タイマー ---
+        // タイマー
         let timerRunning = false;
         let timerStartTime = 0;
         let timerElapsedBeforePause = 0;
@@ -1271,5 +1271,5 @@
         });
     </script>
 </body>
-</html>
+</html>2qui
 
