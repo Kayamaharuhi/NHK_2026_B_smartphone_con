@@ -90,7 +90,7 @@ def serial_reader_thread():
                                 pass
 
                             telemetry_data["steer_currents"] = [
-                                int(parts[4]), int(parts[5]), int(parts[6]), int(parts[7])
+                                int(float(parts[4])/1000.0), int(float(parts[5])/1000.0), int(float(parts[6])/1000.0), int(float(parts[7])/1000.0)
                             ]
                             telemetry_data["timestamp"] = time.time()
 
@@ -112,7 +112,6 @@ def serial_reader_thread():
                 ser_conn = None
             telemetry_data["serial_connected"] = False
             time.sleep(1)
-    """[改善①] 個別パース例外処理によるスレッド切断防止"""
 
 
 @app.websocket("/ws")

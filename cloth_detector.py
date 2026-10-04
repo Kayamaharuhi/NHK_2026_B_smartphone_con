@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 
 import sys
 import time
@@ -8,7 +8,6 @@ from collections import defaultdict, deque
 import cv2
 import numpy as np
 
-# ネットワーク送信用 (urllib で追加ライブラリ不要)
 import urllib.request
 import urllib.error
 
@@ -31,7 +30,7 @@ corner = 4             # 想定コーナー数
 ditect_frame = 5       # 安定化フレーム数
 W, H = 640, 480        # カメラ解像度 (check_camera.py と同じ 480p)
 
-CAMERA_ID = 4          # カメラ ID 4 を固定使用
+CAMERA_ID = 4          
 SERVER_HTTP_URL = "http://localhost:8000/api/cloth_alert"
 
 # 警告スロットリング (検知したときだけ、多重連打を防ぎつつ確実に通知)
