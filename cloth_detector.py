@@ -21,8 +21,8 @@ except ImportError:
     print("[ClothDetector] -> YOLO-World を使いたい場合は: pip install ultralytics を実行してください。\n")
     YOLOWorld = None
 
-REAL_cloth_l = 0.300   # 雑巾の長辺 (m)
-REAL_cloth_s = 0.200   # 雑巾の短辺 (m)
+REAL_cloth_l = 0.200   # 雑巾の長辺 (m)
+REAL_cloth_s = 0.150   # 雑巾の短辺 (m)
 persentage = 0.10      # 信頼度閾値
 BOMP_score = 0.90      # 凸性スコア (これ未満で窪み/よれ判定)
 SHAPE_score = 0.80     # 矩形度スコア (これ未満で長方形崩れ判定)

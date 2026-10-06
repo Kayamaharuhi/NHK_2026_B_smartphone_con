@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -197,10 +195,7 @@
             font-weight: 900;
             color: #ffffff;
         }
-        .event-alert { color: #ffbb00; text-shadow: 0 0 8px rgba(255, 187, 0, 0.5); }
-        .event-super { color: #ff2222; font-weight: 900; text-shadow: 0 0 10px rgba(255, 34, 34, 0.6); }
 
-        /* ─── 試合特化スプリットレイアウト ─── */
         .match-split {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -287,7 +282,6 @@
             transform: translateX(-50%);
         }
 
-        /* GCS昇降 (cm) 表示コンテナ */
         .gcs-container {
             display: flex;
             align-items: center;
@@ -330,7 +324,6 @@
             transition: height 0.15s ease;
         }
 
-        /* システム & 4輪ステア電流負荷メーター */
         .system-cell {
             display: flex;
             flex-direction: column;
@@ -453,7 +446,6 @@
             font-family: monospace;
         }
 
-        /* ─── 右側：【右手操作ゾーン】 ─── */
         .right-action-zone {
             display: flex;
             flex-direction: column;
@@ -552,9 +544,9 @@
             <span style="font-size: 0.65rem; background: #1e3a5f; color: #38bdf8; border: 1px solid #0284c7; padding: 1px 5px; border-radius: 3px; font-weight: bold;">v2.8</span>
         </div>
         <div class="header-controls">
-            <button id="btnVibeToggle" class="btn-vibe-mini" onclick="toggleVibeMode()" title="スマホ振動強度切り替え (タップで今すぐ手元の振動をテスト)">振動: 最大</button>
-            <button id="btnClothToggle" class="btn-mini active" onclick="toggleClothDetection()" title="カメラ雑巾歪み検知のON/OFF">歪み検知: ON</button>
-            <button id="btnFullscreen" class="btn-mini" onclick="toggleFullscreen()" title="全画面表示">[FULL]</button>
+            <button id="btnVibeToggle" class="btn-vibe-mini" onclick="toggleVibeMode()">振動: 最大</button>
+            <button id="btnClothToggle" class="btn-mini active" onclick="toggleClothDetection()">歪み検知: ON</button>
+            <button id="btnFullscreen" class="btn-mini" onclick="toggleFullscreen()">[FULL]</button>
             <span id="statusBadge" class="badge badge-offline">OFFLINE</span>
         </div>
     </div>
@@ -563,7 +555,6 @@
 
         <div class="panel">
 
-            <!-- 試合タイマー -->
             <div class="timer-section">
                 <div class="timer-top-row">
                     <div class="timer-display" id="timerDisplay">00:00.0</div>
@@ -578,7 +569,6 @@
                 </div>
             </div>
 
-            <!-- カメラ雑巾よれ検知 -->
             <div id="clothAlertCard" class="cloth-alert-card cloth-alert-hidden">
                 <div class="cloth-alert-header">
                     <span id="clothAlertTitle">雑巾よれ・歪み検知</span>
@@ -594,43 +584,39 @@
 
             <div class="match-split">
 
-                <!-- 左側：計器ゾーン (YAW, GCS昇降, SYSTEM) -->
                 <div class="left-info-zone">
                     <div class="data-grid-top">
-                        <!-- YAW 表示 -->
                         <div class="data-cell">
                             <div class="data-label" style="display: flex; justify-content: space-between;">
                                 <span>ROBOT POSE / YAW</span>
                             </div>
                             <div class="yaw-container">
-                                <div class="yaw-val" id="yawVal" onclick="sendChar('R')" title="タップしてYaw角をゼロリセット">0.0°</div>
-                                <div id="compass" class="compass-circle" onclick="sendChar('R')" title="タップしてYaw角をゼロリセット">
+                                <div class="yaw-val" id="yawVal" onclick="sendChar('R')">0.0°</div>
+                                <div id="compass" class="compass-circle" onclick="sendChar('R')">
                                     <div class="compass-needle"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- GCS昇降 (cm) 表示 -->
                         <div class="data-cell">
                             <div class="data-label" style="display: flex; justify-content: space-between;">
                                 <span>GCS 昇降</span>
                             </div>
                             <div class="gcs-container">
-                                <div class="gcs-val" id="gcsVal">0.0<span class="gcs-unit">cm</span></div>
-                                <div class="gcs-gauge" title="GCS昇降ゲージ (0〜40cm)">
+                                <div class="gcs-val" id="gcsVal">0.0<span class="gcs-unit">%</span></div>
+                                <div class="gcs-gauge" title="GCS昇降ゲージ (0〜100%)">
                                     <div id="gcsGaugeFill" class="gcs-gauge-fill"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- SYSTEM & 4輪ステア電流負荷メーター -->
                     <div class="data-cell system-cell">
                         <div class="system-header-row">
                             <div class="data-label">SYSTEM / 4-WHEEL CURRENT</div>
                             <span id="tagCon" class="state-tag-mini state-off">CON: OFF</span>
                         </div>
-                        <div class="steer-current-grid" title="足回り電流 (FL, FR, RL, RR)">
+                        <div class="steer-current-grid">
                             <div class="steer-col">
                                 <span class="steer-name">FL</span>
                                 <div class="steer-bar-bg"><div id="barFL" class="steer-bar-fill"></div></div>
@@ -658,27 +644,22 @@
                 <div class="right-action-zone">
                     <div class="action-zone-header">
                         <span>ACTION PAD</span>
-                        <span style="font-family: monospace; color: #888;"></span>
                     </div>
 
                     <div class="btn-group">
-                        <!-- 左上: USER SLOT 1 [T] -->
-                        <button class="cmd btn-slot-1" onclick="sendChar('T')" title="User Slot 1 (T)">
-                            <div class="cmd-title">RIGHT_CATAPULT</div>
+                        <button class="cmd btn-slot-1" onclick="sendChar('T')">
+                            <div class="cmd-title">LEFT_CATAPULT</div>
                             <div class="cmd-key">[ T ]</div>
                         </button>
-                        <!-- 右上: USER SLOT [E] -->
-                        <button class="cmd btn-slot-2" onclick="sendChar('E')" title="User Slot (E)">
-                            <div class="cmd-title">LEFT_CATAPULT</div>
+                        <button class="cmd btn-slot-2" onclick="sendChar('E')">
+                            <div class="cmd-title">RIGHT_CATAPULT</div>
                             <div class="cmd-key">[ E ]</div>
                         </button>
-                        <!-- 左下: EMERGENCY STOP [S] -->
-                        <button class="cmd btn-stop" onclick="sendChar('S')" title="Emergency Stop (S)">
+                        <button class="cmd btn-stop" onclick="sendChar('S')">
                             <div class="cmd-title">EMERGENCY STOP</div>
                             <div class="cmd-key">[ S ] 非常停止</div>
                         </button>
-                        <!-- 右下: RESET YAW [R] -->
-                        <button class="cmd btn-cmd-reset" onclick="sendChar('R')" title="Reset Yaw (R)">
+                        <button class="cmd btn-cmd-reset" onclick="sendChar('R')">
                             <div class="cmd-title">RESET YAW</div>
                             <div class="cmd-key">[ R ]</div>
                         </button>
@@ -686,7 +667,7 @@
 
                     <div class="tx-status-bar">
                         <span style="color: #666;">直近送信コマンド:</span>
-                        <span id="lastTxBadge" style="color: #fbbf24; font-weight: bold; font-family: monospace;">待機中</span>
+                        <span id="lastTxBadge" style="color: #fbbf24; font-weight: bold;">待機中</span>
                     </div>
                 </div>
 
@@ -697,17 +678,14 @@
     </div>
 
     <script>
-        // --- 音声 & バイブレーション通知 ---
         let audioCtx = null;
         let soundEnabled = true;
         let isAudioUnlocked = false;
 
-        // 歪み検知の有効・無効フラグ
         let clothDetectionEnabled = true;
         let clothSnoozeUntil = 0;
 
-        // 振動モード
-        let vibeMode = 'ULTRA'; // 'ULTRA' | 'STRONG' | 'NORMAL'
+        let vibeMode = 'ULTRA';
         let clothVibeInterval = null;
 
         const REASON_JA_MAP = {
@@ -728,19 +706,14 @@
             clothDetectionEnabled = !clothDetectionEnabled;
             const btn = document.getElementById("btnClothToggle");
             if (clothDetectionEnabled) {
-                btn.textContent = " 歪み検知: ON";
+                btn.textContent = "歪み検知: ON";
                 btn.classList.add("active");
             } else {
-                btn.textContent = " 歪み検知: OFF";
+                btn.textContent = "歪み検知: OFF";
                 btn.classList.remove("active");
                 document.getElementById("clothAlertCard").classList.add("cloth-alert-hidden");
                 stopClothVibrationLoop();
             }
-        }
-
-        function snoozeClothAlert(seconds) {
-            clothSnoozeUntil = Date.now() + (seconds * 1000);
-            stopClothVibrationLoop();
         }
 
         function toggleFullscreen() {
@@ -756,9 +729,7 @@
         function initAudio() {
             if (!audioCtx) {
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                if (AudioContextClass) {
-                    audioCtx = new AudioContextClass();
-                }
+                if (AudioContextClass) audioCtx = new AudioContextClass();
             }
             if (audioCtx && audioCtx.state === 'suspended') {
                 audioCtx.resume().catch(() => {});
@@ -792,7 +763,6 @@
 
                 osc1.type = "sawtooth";
                 osc1.frequency.setValueAtTime(46, audioCtx.currentTime);
-
                 osc2.type = "square";
                 osc2.frequency.setValueAtTime(56, audioCtx.currentTime);
 
@@ -812,106 +782,38 @@
 
         function triggerVibration(pattern = 'CLOTH') {
             let actualPattern = [600, 80, 600];
-
             if (pattern === 'CLOTH') {
-                if (vibeMode === 'ULTRA') {
-                    actualPattern = [1400, 45, 1400, 45, 1600, 45, 1800];
-                } else if (vibeMode === 'STRONG') {
-                    actualPattern = [800, 70, 800, 70, 1000];
-                } else {
-                    actualPattern = [350, 100, 350, 100, 450];
-                }
+                actualPattern = vibeMode === 'ULTRA' ? [1400, 45, 1400, 45, 1600, 45, 1800] : vibeMode === 'STRONG' ? [800, 70, 800, 70, 1000] : [350, 100, 350, 100, 450];
             } else if (pattern === 'STOP') {
-                if (vibeMode === 'ULTRA') {
-                    actualPattern = [2000, 40, 2000, 40, 2500];
-                    playSubBassHaptic(0.9);
-                } else if (vibeMode === 'STRONG') {
-                    actualPattern = [1200, 70, 1200, 70, 1500];
-                    playSubBassHaptic(0.6);
-                } else {
-                    actualPattern = [800, 100, 800];
-                }
+                actualPattern = vibeMode === 'ULTRA' ? [2000, 40, 2000, 40, 2500] : [800, 100, 800];
+                playSubBassHaptic(0.8);
             } else if (pattern === 'TAP') {
-                if (vibeMode === 'ULTRA') {
-                    actualPattern = [180, 40, 160];
-                } else if (vibeMode === 'STRONG') {
-                    actualPattern = [120];
-                } else {
-                    actualPattern = [60];
-                }
+                actualPattern = vibeMode === 'ULTRA' ? [180, 40, 160] : [60];
             } else if (pattern === 'SUPER') {
-                if (vibeMode === 'ULTRA') {
-                    actualPattern = [1000, 50, 1000, 50, 1400];
-                    playSubBassHaptic(0.7);
-                } else if (vibeMode === 'STRONG') {
-                    actualPattern = [600, 80, 600, 80, 800];
-                    playSubBassHaptic(0.45);
-                } else {
-                    actualPattern = [400, 100, 400];
-                }
-            } else if (Array.isArray(pattern)) {
-                if (vibeMode === 'ULTRA') {
-                    actualPattern = pattern.map((v, i) => (i % 2 === 0 ? Math.round(v * 2.5) : Math.max(35, Math.round(v * 0.5))));
-                } else if (vibeMode === 'STRONG') {
-                    actualPattern = pattern.map((v, i) => (i % 2 === 0 ? Math.round(v * 1.6) : v));
-                } else {
-                    actualPattern = pattern;
-                }
-            } else if (typeof pattern === 'number') {
-                if (vibeMode === 'ULTRA') {
-                    actualPattern = [Math.round(pattern * 2.5)];
-                } else if (vibeMode === 'STRONG') {
-                    actualPattern = [Math.round(pattern * 1.5)];
-                } else {
-                    actualPattern = [pattern];
-                }
+                actualPattern = [1000, 50, 1000, 50, 1400];
+                playSubBassHaptic(0.7);
             }
 
             if (window.navigator && window.navigator.vibrate) {
-                try {
-                    window.navigator.vibrate(actualPattern);
-                } catch (e) {}
+                try { window.navigator.vibrate(actualPattern); } catch (e) {}
             }
         }
 
         function toggleVibeMode() {
             unlockAudio();
-            if (vibeMode === 'ULTRA') {
-                vibeMode = 'STRONG';
-            } else if (vibeMode === 'STRONG') {
-                vibeMode = 'NORMAL';
-            } else {
-                vibeMode = 'ULTRA';
-            }
-
+            vibeMode = vibeMode === 'ULTRA' ? 'STRONG' : vibeMode === 'STRONG' ? 'NORMAL' : 'ULTRA';
             const btn = document.getElementById('btnVibeToggle');
             if (btn) {
-                if (vibeMode === 'ULTRA') {
-                    btn.textContent = "振動: 最大";
-                    btn.style.background = "#4c0519";
-                    btn.style.borderColor = "#f43f5e";
-                    btn.style.color = "#ffe4e6";
-                } else if (vibeMode === 'STRONG') {
-                    btn.textContent = "振動: 標準";
-                    btn.style.background = "#7c2d12";
-                    btn.style.borderColor = "#f97316";
-                    btn.style.color = "#ffedd5";
-                } else {
-                    btn.textContent = "振動: 小";
-                    btn.style.background = "#111111";
-                    btn.style.borderColor = "#333333";
-                    btn.style.color = "#aaaaaa";
-                }
+                btn.textContent = vibeMode === 'ULTRA' ? "振動: 最大" : vibeMode === 'STRONG' ? "振動: 標準" : "振動: 小";
             }
-            triggerVibration('CLOTH');
+            triggerVibration('TAP');
         }
 
         function startClothVibrationLoop() {
             triggerVibration('CLOTH');
             if (clothVibeInterval) clearInterval(clothVibeInterval);
             clothVibeInterval = setInterval(() => {
-                const isSnoozed = Date.now() < clothSnoozeUntil;
-                if (window._lastClothWasNg && clothDetectionEnabled && !isSnoozed) {
+                if (window._lastClothWasNg && clothDetectionEnabled && Date.now() >= clothSnoozeUntil) {
                     triggerVibration('CLOTH');
                 } else {
                     stopClothVibrationLoop();
@@ -926,64 +828,28 @@
             }
         }
 
-        function playClothWarningBeep() {
-            return;
-        }
-
-        function playTone(freq = 880, duration = 0.14, type = "sine") {
-            if (!soundEnabled) return;
-            try {
-                unlockAudio();
-                if (!audioCtx) return;
-
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-                gain.gain.setValueAtTime(0.45, audioCtx.currentTime);
-                gain.gain.setTargetAtTime(0.0001, audioCtx.currentTime + 0.02, duration * 0.4);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration + 0.05);
-            } catch (e) {}
-        }
-
         function playEventChime(isSuper = false) {
             if (!soundEnabled) return;
             try {
                 unlockAudio();
                 if (!audioCtx) return;
-
-                const notes = isSuper 
-                    ? [523.25, 659.25, 783.99, 1046.50]
-                    : [659.25, 880.00, 1046.50];
-                
+                const notes = isSuper ? [523.25, 659.25, 783.99, 1046.50] : [659.25, 880.00, 1046.50];
                 notes.forEach((freq, idx) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     const startTime = audioCtx.currentTime + (idx * 0.09);
-                    const duration = 0.28;
-
                     osc.type = "triangle";
                     osc.frequency.setValueAtTime(freq, startTime);
-
                     gain.gain.setValueAtTime(0.4, startTime);
-                    gain.gain.setTargetAtTime(0.0001, startTime + 0.05, duration * 0.35);
-
+                    gain.gain.setTargetAtTime(0.0001, startTime + 0.05, 0.25 * 0.35);
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
-
                     osc.start(startTime);
-                    osc.stop(startTime + duration + 0.05);
+                    osc.stop(startTime + 0.3);
                 });
             } catch (e) {}
         }
 
-        // --- WebSocket 通信 ---
         let ws = null;
         let reconnectTimer = null;
         const statusBadge = document.getElementById('statusBadge');
@@ -1016,10 +882,6 @@
             ws.onopen = () => {
                 statusBadge.textContent = "ONLINE";
                 statusBadge.className = "badge badge-online";
-                if (reconnectTimer) {
-                    clearTimeout(reconnectTimer);
-                    reconnectTimer = null;
-                }
             };
 
             ws.onclose = () => {
@@ -1028,15 +890,12 @@
                 scheduleReconnect();
             };
 
-            ws.onerror = () => {
-                ws.close();
-            };
+            ws.onerror = () => { ws.close(); };
 
             ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
 
-                    // Yaw角
                     const rawDeg = (data.yaw * 180 / Math.PI);
                     yawVal.textContent = `${rawDeg.toFixed(1)}°`;
 
@@ -1051,20 +910,17 @@
                         continuousYaw += diff;
                         prevRawDeg = rawDeg;
                     }
-
                     compass.style.transform = `rotate(${continuousYaw}deg)`;
 
-                    // GCS昇降 
                     const gcsHeight = typeof data.gcs_height === 'number' ? data.gcs_height : 0.0;
                     if (gcsVal) {
-                        gcsVal.innerHTML = `${gcsHeight.toFixed(1)}<span class="gcs-unit">cm</span>`;
+                        gcsVal.innerHTML = `${gcsHeight.toFixed(1)}<span class="gcs-unit">%</span>`;
                     }
                     if (gcsGaugeFill) {
-                        const pct = Math.min(100, Math.max(0, (gcsHeight / 20) * 100));
+                        const pct = Math.min(100, Math.max(0, gcsHeight));
                         gcsGaugeFill.style.height = `${pct}%`;
                     }
 
-                    //  通信監視
                     if (data.con_alive) {
                         tagCon.className = "state-tag-mini state-ok";
                         tagCon.textContent = "CON: OK";
@@ -1073,12 +929,11 @@
                         tagCon.textContent = "CON: LOST";
                     }
 
-                    //足回り電流
                     if (data.steer_currents && data.steer_currents.length >= 4) {
                         const ids = ['FL', 'FR', 'RL', 'RR'];
                         for (let i = 0; i < 4; i++) {
                             const cur = data.steer_currents[i];
-                            const pct = Math.min(100, Math.round((Math.abs(cur) / 40) * 100));
+                            const pct = Math.min(100, Math.round((Math.abs(cur) / 400) * 100));
                             const bar = document.getElementById(`bar${ids[i]}`);
                             const val = document.getElementById(`val${ids[i]}`);
                             if (bar) {
@@ -1089,7 +944,6 @@
                         }
                     }
 
-                    // カメラ雑巾歪み検知
                     const clothCard = document.getElementById("clothAlertCard");
                     const clothTitle = document.getElementById("clothAlertTitle");
                     const clothConf = document.getElementById("clothAlertConf");
@@ -1099,7 +953,7 @@
                     if (clothDetectionEnabled && data.cloth && data.cloth.detected) {
                         clothCard.classList.remove("cloth-alert-hidden");
                         const isNg = data.cloth.is_ng;
-                        clothConf.textContent = `信頼度: ${Math.round((data.cloth.conf || 0) * 100)}%`;
+                        clothConf.textContent = `CONF: ${Math.round((data.cloth.conf || 0) * 100)}%`;
 
                         if (isNg) {
                             clothCard.className = "cloth-alert-card cloth-alert-ng";
@@ -1108,10 +962,9 @@
                                 ? data.cloth.reasons.map(translateReason).join(" / ")
                                 : translateReason(data.cloth.status);
                             clothReason.textContent = `判定: 【${reasons}】`;
-                            clothMetrics.textContent = `凸性:${data.cloth.convexity || 0} 矩形度:${data.cloth.rectangularity || 0} 座標:(${data.cloth.cx},${data.cloth.cy})`;
+                            clothMetrics.textContent = `Conv:${data.cloth.convexity || 0} Rect:${data.cloth.rectangularity || 0}`;
 
                             if (!window._lastClothWasNg) {
-                                playClothWarningBeep();
                                 startClothVibrationLoop();
                                 window._lastClothWasNg = true;
                             }
@@ -1119,7 +972,7 @@
                             clothCard.className = "cloth-alert-card cloth-alert-ok";
                             clothTitle.textContent = "正常 (まっすぐ)";
                             clothReason.textContent = "判定: 【よれ・歪みなし】";
-                            clothMetrics.textContent = `凸性:${data.cloth.convexity || 0} 矩形度:${data.cloth.rectangularity || 0} 座標:(${data.cloth.cx},${data.cloth.cy})`;
+                            clothMetrics.textContent = `Conv:${data.cloth.convexity || 0} Rect:${data.cloth.rectangularity || 0}`;
                             window._lastClothWasNg = false;
                             stopClothVibrationLoop();
                         }
@@ -1128,9 +981,7 @@
                         window._lastClothWasNg = false;
                         stopClothVibrationLoop();
                     }
-                } catch (err) {
-                    console.error("Data parse error:", err);
-                }
+                } catch (err) {}
             };
         }
 
@@ -1147,24 +998,19 @@
 
         function sendChar(char) {
             unlockAudio();
-            if (char === 'S') {
-                triggerVibration('STOP');
-            } else {
-                triggerVibration('TAP');
-            }
+            triggerVibration(char === 'S' ? 'STOP' : 'TAP');
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(char);
             }
             const lastTx = document.getElementById("lastTxBadge");
             if (lastTx) {
                 const now = new Date();
-                const timeStr = `${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(Math.floor(now.getMilliseconds() / 100))}`;
-                const labelMap = { 'R': 'RESET YAW [R]', 'T': 'USER SLOT 1 [T]', 'E': 'USER SLOT [E]', 'S': 'EMERGENCY STOP [S]' };
+                const timeStr = `${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${Math.floor(now.getMilliseconds() / 100)}`;
+                const labelMap = { 'R': 'RESET YAW [R]', 'T': 'RIGHT_CATAPULT [T]', 'E': 'LEFT_CATAPULT [E]', 'S': 'EMERGENCY STOP [S]' };
                 lastTx.textContent = `${labelMap[char] || char} (${timeStr})`;
             }
         }
 
-        // タイマー
         let timerRunning = false;
         let timerStartTime = 0;
         let timerElapsedBeforePause = 0;
@@ -1272,4 +1118,3 @@
     </script>
 </body>
 </html>
-

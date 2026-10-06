@@ -14,19 +14,19 @@ app = FastAPI(title="明石布 ロボットコントローラー API")
 SERIAL_PORT = os.environ.get("SERIAL_PORT", "/dev/ttyACM0")
 BAUD_RATE = int(os.environ.get("BAUD_RATE", 115200))
 
-MAX_GCS_HEIGHT = 20.0
+MAX_GCS_HEIGHT = 100.0
 
 serial_lock = threading.Lock()
 ser_conn = None
 
 telemetry_data = {
     "yaw": 0.0,
-    "gcs_height": 0.0,  
+    "gcs_height": 0.0,
     "con_alive": False,
     "steer_currents": [0, 0, 0, 0],
     "timestamp": 0.0,
     "serial_connected": False,
-    "cloth": None,  
+    "cloth": None,
 }
 
 connected_clients = set()
@@ -76,29 +76,30 @@ def serial_reader_thread():
                         header = parts[0].strip()
 
                         if header == "DATA" and len(parts) >= 8:
-      
                             telemetry_data["yaw"] = float(parts[1]) / 1000.0
-                      
                             telemetry_data["con_alive"] = (parts[2].strip() == "1")
-                            
+
                             raw_gcs_str = parts[8] if len(parts) >= 9 else parts[3]
                             try:
                                 raw_gcs = float(raw_gcs_str)
-                                gcs_cm = raw_gcs / 10.0
-                                telemetry_data["gcs_height"] = max(0.0, min(MAX_GCS_HEIGHT, gcs_cm))
+                                gcs_val = raw_gcs / 10.0 if raw_gcs > 100.0 else raw_gcs
+                                telemetry_data["gcs_height"] = max(0.0, min(MAX_GCS_HEIGHT, gcs_val))
                             except ValueError:
                                 pass
 
                             telemetry_data["steer_currents"] = [
-                                int(float(parts[4])/1000.0), int(float(parts[5])/1000.0), int(float(parts[6])/1000.0), int(float(parts[7])/1000.0)
+                                int(float(parts[4]) / 100.0),
+                                int(float(parts[5]) / 100.0),
+                                int(float(parts[6]) / 100.0),
+                                int(float(parts[7]) / 100.0)
                             ]
                             telemetry_data["timestamp"] = time.time()
 
                         elif header == "GCS" and len(parts) >= 2:
                             try:
                                 raw_gcs = float(parts[1])
-                                gcs_cm = raw_gcs / 10.0
-                                telemetry_data["gcs_height"] = max(0.0, min(MAX_GCS_HEIGHT, gcs_cm))
+                                gcs_val = raw_gcs / 10.0 if raw_gcs > 100.0 else raw_gcs
+                                telemetry_data["gcs_height"] = max(0.0, min(MAX_GCS_HEIGHT, gcs_val))
                                 telemetry_data["timestamp"] = time.time()
                             except ValueError:
                                 pass
@@ -199,7 +200,7 @@ async def post_cloth_alert(request: Request):
 async def get_index():
     found_candidates = []
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    
+
     for candidate in ["robot_index.html", "index.html"]:
         index_path = os.path.join(base_dir, candidate)
         if os.path.exists(index_path) and os.path.isfile(index_path):
@@ -209,9 +210,6 @@ async def get_index():
     if found_candidates:
         found_candidates.sort(key=lambda x: x[0], reverse=True)
         newest_mtime, newest_path, newest_name = found_candidates[0]
-        mtime_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(newest_mtime))
-        print(f"[HTTP GET /] 配信中: {newest_name} (最終更新: {mtime_str})")
-        
         return FileResponse(
             newest_path,
             headers={
