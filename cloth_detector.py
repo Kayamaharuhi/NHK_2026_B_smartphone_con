@@ -17,7 +17,7 @@ try:
     HAS_YOLO = True
 except ImportError:
     print("[ClothDetector] Info: ultralytics is not installed.")
-    print("[ClothDetector] -> 自動フォールバック: 純粋な OpenCV 形状・凸性解析モードで起動します。(追加インストール不要)")
+    print("[ClothDetector] ->  純粋な OpenCV で起動します。")
     print("[ClothDetector] -> YOLO-World を使いたい場合は: pip install ultralytics を実行してください。\n")
     YOLOWorld = None
 
@@ -28,12 +28,11 @@ BOMP_score = 0.90      # 凸性スコア (これ未満で窪み/よれ判定)
 SHAPE_score = 0.80     # 矩形度スコア (これ未満で長方形崩れ判定)
 corner = 4             # 想定コーナー数
 ditect_frame = 5       # 安定化フレーム数
-W, H = 640, 480        # カメラ解像度 (check_camera.py と同じ 480p)
+W, H = 640, 480        # カメラ解像度 480p
 
 CAMERA_ID = 4          
 SERVER_HTTP_URL = "http://localhost:8000/api/cloth_alert"
 
-# 警告スロットリング (検知したときだけ、多重連打を防ぎつつ確実に通知)
 MIN_ALERT_INTERVAL = 0.5   # 同じNG状態での最短送信間隔 (秒)
 last_sent_time = 0.0
 last_sent_status = None
@@ -53,7 +52,6 @@ def send_cloth_alert(payload: dict):
             with urllib.request.urlopen(req, timeout=0.8) as resp:
                 pass
         except Exception as e:
-            # サーバー未起動時などは無視して検知を優先
             pass
 
     threading.Thread(target=_post, daemon=True).start()
@@ -188,13 +186,10 @@ def main():
 
     print(f"[ClothDetector] カメラ ID {CAMERA_ID} (/dev/video{CAMERA_ID}) を起動中...")
     
-    # Linux環境では V4L2 バックエンドを明示的に指定すると認識率が大幅に向上します
     def open_camera_stream(cam_index):
-        # 1. cv2.CAP_V4L2 (Linux標準) でトライ
         cap_inst = cv2.VideoCapture(cam_index, cv2.CAP_V4L2)
         if cap_inst.isOpened():
             return cap_inst
-        # 2. 通常デフォルトバックエンドでトライ
         cap_inst = cv2.VideoCapture(cam_index)
         if cap_inst.isOpened():
             return cap_inst
@@ -202,7 +197,6 @@ def main():
 
     cap = open_camera_stream(CAMERA_ID)
     
-    # 接続リトライ
     retry_count = 0
     while (cap is None or not cap.isOpened()) and retry_count < 3:
         retry_count += 1
@@ -210,9 +204,8 @@ def main():
         time.sleep(1.0)
         cap = open_camera_stream(CAMERA_ID)
 
-    # カメラ4が見つからない場合、接続されている全カメラ番号 (0〜9) を自動スキャンしてフォールバック
     if cap is None or not cap.isOpened():
-        print(f"[ClothDetector] ⚠️ カメラ {CAMERA_ID} が認識されません。接続されている他のカメラ番号を自動スキャンします...")
+        print(f"[ClothDetector] カメラ {CAMERA_ID} が認識されません。接続されている他のカメラ番号を自動スキャンします")
         found_cam_id = None
         for candidate_id in range(10):
             if candidate_id == CAMERA_ID:
@@ -223,12 +216,12 @@ def main():
                 if ret_test and frame_test is not None:
                     found_cam_id = candidate_id
                     cap = test_cap
-                    print(f"[ClothDetector] 🎯 カメラ ID {candidate_id} を自動検出し、切り替えました！")
+                    print(f"[ClothDetector]  カメラ ID {candidate_id} を自動検出し、切り替えました")
                     break
                 test_cap.release()
 
         if cap is None or not cap.isOpened():
-            print(f"[ClothDetector] ❌ エラー: 利用可能なカメラが見つかりませんでした。")
+            print(f"[ClothDetector]  エラー: 利用可能なカメラが見つかりませんでした。")
             print("  ・USBカメラの接続を確認してください")
             print("  ・Ubuntu端末で 'ls -l /dev/video*' を実行して番号を確認してください")
             print("  ・権限エラーの場合: sudo chmod 666 /dev/video*")
@@ -258,7 +251,6 @@ def main():
             max_conf = -1.0
 
             if model is not None:
-                # --- YOLO-World 追跡モード ---
                 try:
                     results = model.track(frame, conf=persentage, persist=True, verbose=False)
                     for result in results:
@@ -310,13 +302,12 @@ def main():
                 except Exception as yolo_err:
                     print(f"[YOLO Error] {yolo_err}")
             else:
-                # --- 純粋 OpenCV 輪郭・凸性解析モード (YOLO不要) ---
                 mask_u8 = get_cloth_mask(frame)
                 contours, _ = cv2.findContours(mask_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 if contours:
                     main_cnt = max(contours, key=cv2.contourArea)
                     area = cv2.contourArea(main_cnt)
-                    if area > 1200:  # 一定以上の大きさの布状物体
+                    if area > 1200: 
                         x, y, box_w, box_h = cv2.boundingRect(main_cnt)
                         cx = int(x + box_w / 2.0)
                         cy = int(y + box_h / 2.0)
@@ -351,13 +342,9 @@ def main():
 
                 is_ng = status.startswith('NG')
 
-                # ==========================================
-                # 【重要】検知したときだけ値を送信して警告
-                # ==========================================
                 status_changed = (status != last_sent_status)
                 time_elapsed = (now - last_sent_time) >= MIN_ALERT_INTERVAL
 
-                # 状態が変わった瞬間、または NG が継続している時にスロットリングして送信
                 if status_changed or (is_ng and time_elapsed):
                     last_sent_time = now
                     last_sent_status = status
@@ -378,7 +365,6 @@ def main():
                     send_cloth_alert(alert_payload)
                     print(f"[{'ALERT' if is_ng else 'OK'}] Sent: {status} at ({cx}, {cy})")
 
-                # 描画処理 (GUI用)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
                 cv2.circle(frame, (cx, cy), 5, (0, 0, 255), -1)
 
@@ -392,7 +378,6 @@ def main():
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2
                 )
             else:
-                # 雑巾が見えなくなった場合、1回だけロスト状態を送信
                 if last_sent_status is not None and (now - last_sent_time) >= 1.0:
                     last_sent_status = None
                     last_sent_time = now
@@ -409,12 +394,11 @@ def main():
 
             cv2.line(frame, (int(CX), 0), (int(CX), current_h), (255, 0, 0), 1)
 
-            # 歪み検知の現在状態バナー描画
+    
             toggle_text = "[DISTORTION: ON] (Press 'd' to toggle)" if distortion_enabled else "[DISTORTION: OFF] (Press 'd' to toggle)"
             toggle_color = (0, 255, 0) if distortion_enabled else (0, 165, 255)
             cv2.putText(frame, toggle_text, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, toggle_color, 2)
 
-            # GUI環境があれば表示 & キー入力処理
             try:
                 cv2.imshow('Cloth Straight/Folded Tracker', frame)
                 key = cv2.waitKey(1) & 0xFF
