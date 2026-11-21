@@ -17,7 +17,7 @@ try:
     HAS_YOLO = True
 except ImportError:
     print("[ClothDetector] Info: ultralytics is not installed.")
-    print("[ClothDetector] ->  純粋な OpenCV で起動します。")
+    print("[ClothDetector] ->  OpenCV で起動します。")
     print("[ClothDetector] -> YOLO-World を使いたい場合は: pip install ultralytics を実行してください。\n")
     YOLOWorld = None
 
